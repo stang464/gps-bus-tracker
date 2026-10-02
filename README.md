@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Route — GPS vehicle tracker
 
-## Getting Started
+เว็บสำหรับคนขับแชร์พิกัด GPS และให้ผู้โดยสารติดตามตำแหน่งล่าสุดบน Google Maps
+ตำแหน่งจะถูกส่งทุก 30 วินาทีเมื่อเปิดหน้าแชร์ตำแหน่งค้างไว้ ส่วนหน้าติดตามจะตรวจพิกัดใหม่ทุก 10 วินาที
 
-First, run the development server:
+### เริ่มใช้งาน
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิด `http://localhost:3000` แล้วทำตามนี้:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. คนขับเปิด `/driver` อนุญาตการเข้าถึงตำแหน่ง และกดเริ่มแชร์
+2. ส่งรหัสหรือลิงก์ติดตามที่แสดงบนหน้าให้ผู้โดยสาร
+3. ผู้โดยสารเปิดลิงก์ หรือกรอกรหัสที่ `/track`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+GPS ใช้งานได้บน `localhost` หรือเว็บที่เปิดผ่าน HTTPS เท่านั้น ต้องอนุญาต Location ในเบราว์เซอร์ และควรเปิดหน้าแชร์ตำแหน่งไว้ระหว่างเดินทาง
 
-## Learn More
+### ทดลองเปิดเว็บผ่าน ngrok
 
-To learn more about Next.js, take a look at the following resources:
+ต้องติดตั้ง ngrok และตั้งค่า authtoken ในเครื่องก่อน จากนั้นรัน Next.js และเปิด tunnel ไปยังพอร์ตเดียวกัน:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev
+ngrok http 3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+เปิด URL แบบ `https://...ngrok-free.app` ที่ ngrok แสดง แล้วอนุญาต Location ในเบราว์เซอร์ ผู้โดยสารต้องเปิด URL ngrok เดียวกันพร้อมรหัสติดตาม ไม่ใช่ `localhost` หลังแก้ `next.config.ts` ให้ restart dev server เพื่อให้การตั้งค่า allowed origins มีผล การอนุญาต ngrok hostname จำกัดไว้ที่ dev server เท่านั้น
 
-## Deploy on Vercel
+### ที่เก็บข้อมูลและการ deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+API เก็บตำแหน่งล่าสุดของแต่ละรหัสไว้ใน `.data/locations.json` บนเครื่องเซิร์ฟเวอร์ โดยกำหนดโฟลเดอร์อื่นได้ด้วย environment variable `LOCATION_STORE_PATH` โฟลเดอร์นี้ต้องเขียนได้และข้อมูลจะคงอยู่ตราบเท่าที่ดิสก์ของเซิร์ฟเวอร์ยังคงอยู่
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+รูปแบบไฟล์นี้เหมาะสำหรับทดลองใช้งานหรือ deploy เป็น Node.js instance เดียวที่มี persistent disk เท่านั้น ไม่เหมาะกับ serverless หรือการรันหลาย instance เพราะแต่ละเครื่องอาจมีข้อมูลแยกกัน ควรเปลี่ยน `lib/location-store.ts` เป็นฐานข้อมูลกลาง เช่น PostgreSQL หรือ Supabase ก่อนใช้งานจริงหลายเครื่อง
+
+ลิงก์ติดตามเป็นลิงก์สาธารณะสำหรับผู้ที่ได้รับรหัส คนขับควรแชร์เฉพาะกับผู้โดยสารที่ต้องการให้เห็นตำแหน่งรถ ส่วนสิทธิ์เขียนพิกัดใช้โทเคนแยกที่เก็บไว้ในเบราว์เซอร์ของคนขับและไม่ส่งให้ผู้ติดตาม
